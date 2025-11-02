@@ -10,6 +10,7 @@ async function handleCommand(payload) {
   }
 
   const text = payload.message?.text || payload.text;
+  
 
   if (text === "/start") {
     await handleStart(payload, platform);
