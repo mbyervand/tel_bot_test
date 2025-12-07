@@ -1,23 +1,21 @@
 const { handleStart } = require("../handlers/startHandler");
 
-// تشخیص و هندل پیام ها
-async function handleCommand(payload) {
-  let platform;
-  if (payload.message) {
-    platform = "telegram";
-  } else if (payload.fromId) {
-    platform = "bale";
-  }
+async function handleCommand(payload, platform) {
+  console.log("⚡ handleCommand payload:", payload);
+  console.log("⚡ platform:", platform);
 
-  const text = payload.message?.text || payload.text;
-  
+  // متن پیام
+  const text = payload?.message?.text || payload?.text;
+  if (!text) {
+    console.log("⚠️ متن پیام پیدا نشد!", payload);
+    return;
+  }
 
   if (text === "/start") {
     await handleStart(payload, platform);
   } else {
-    // سایر دستورات
     console.log(`دستور ناشناخته از ${platform}:`, text);
   }
 }
 
-module.exports = { handleCommand };
+module.exports = handleCommand;

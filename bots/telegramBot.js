@@ -57,25 +57,54 @@
 
 // module.exports = { bot, handleRequest };
 
+// const axios = require("axios");
+
+// const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+
+// async function telegramHandler(message) {
+//     const chatId = message.chat.id;
+//     const text = message.text || "";
+
+//     let reply = "پیام شما دریافت شد!";
+
+//     if (text === "/start") {
+//         reply = "سلام! خوش آمدید به ربات تلگرام!";
+//     }
+
+//     await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+//         chat_id: chatId,
+//         text: reply,
+//         parse_mode: "HTML"
+//     });
+// }
+
+// module.exports = telegramHandler;
+
+
+const { Telegraf } = require("telegraf");
+const handleCommand = require("../controller/commandHandler");
 const axios = require("axios");
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const bot = new Telegraf(process.env.TELEGRAM_TOKEN);
 
-async function telegramHandler(message) {
-    const chatId = message.chat.id;
-    const text = message.text || "";
+// Polling
+bot.start((ctx) => ctx.reply("👋 سلام! خوش آمدی به ربات تلگرام!"));
+bot.help((ctx) => ctx.reply("🆘 دستورات:\n/start - شروع\n/help - راهنما"));
+bot.on("text", async (ctx) => await handleCommand("telegram", ctx.message));
 
-    let reply = "پیام شما دریافت شد!";
+// Webhook
+async function handleRequest(req, res) {
+  try {
+    const message = req.body.message;
+    if (!message?.chat?.id) return res.status(400).json({ ok: false, error: "Invalid chat_id" });
 
-    if (text === "/start") {
-        reply = "سلام! خوش آمدید به ربات تلگرام!";
-    }
-
-    await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-        chat_id: chatId,
-        text: reply,
-        parse_mode: "HTML"
-    });
+    console.log(`📨 پیام از تلگرام (chatId: ${message.chat.id}): ${message.text}`);
+    await handleCommand("telegram", req.body);
+    res.status(200).json({ ok: true });
+  } catch (err) {
+    console.error("❌ handleRequest error:", err);
+    res.sendStatus(500);
+  }
 }
 
-module.exports = telegramHandler;
+module.exports = { bot, handleRequest };
